@@ -332,9 +332,12 @@ namespace System.CommandLine
                 .OrderBy(alias => alias.Length);
 
             var option = string.Join(", ", rawAliases);
+            var description = symbol.Description;
 
             if (ShouldShowHelp(symbol))
             {
+                var symbolDefaultValue = string.Empty;
+
                 foreach (var argument in symbol.Arguments())
                 {
                     if (ShouldShowHelp(argument) && !string.IsNullOrWhiteSpace(argument.Name))
@@ -344,11 +347,23 @@ namespace System.CommandLine
                         {
                             option = $"{option} <{argumentDescriptor}>";
                         }
+
+                        if (argument.HasDefaultValue && string.IsNullOrEmpty(symbolDefaultValue))
+                        {
+                            symbolDefaultValue = argument.GetDefaultValue().ToString();
+                        }
                     }
+                }
+
+                if (!string.IsNullOrEmpty(symbolDefaultValue))
+                {
+                    option = $"{option} (Default: {symbolDefaultValue})";
                 }
             }
 
-            yield return new HelpItem(option, symbol.Description);
+            var defaultValue = symbol.Arguments().FirstOrDefault()?.GetDefaultValue()?.ToString();
+
+            yield return new HelpItem(option, description);
         }
 
         /// <summary>
